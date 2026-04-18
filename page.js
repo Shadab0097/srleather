@@ -101,9 +101,10 @@ const SECTIONS = [
   {
     id: "stats",
     type: "client-cards",
-    enter: 64,
-    leave: 76,
+    enter: 55,
+    leave: 88,
     animation: "stagger-up",
+    persist: true,
     clients: [
       { name: "The Design Edge", domain: "thedesignedge.com.au", about: "An Australian brand dedicated to ethically sourced, premium cowhide and leather homewares and bags, defined by rustic elegance." },
       { name: "Green Hermitage", domain: "greenhermitage.com", about: "Pioneers in sustainable luxury, creating premium handcrafted vegan handbags and accessories mindful of the earth." },
@@ -122,7 +123,7 @@ const SECTIONS = [
     label: "005 / Get in Touch",
     heading: "Let's Create Together",
     body: "Whether you need a single bespoke piece or a bulk corporate order — we'd love to hear from you.",
-    enter: 80,
+    enter: 85,
     leave: 100,
     animation: "scale-up",
     persist: true,
@@ -221,6 +222,39 @@ export default function Home() {
       ctx.fillStyle = bgColorRef.current;
       ctx.fillRect(0, 0, cw, ch);
       ctx.drawImage(img, dx, dy, dw, dh);
+
+      // ── Soft edge vignette to eliminate sharp frame-edge seams ──
+      const bg = bgColorRef.current;
+      const feather = ch * 0.22; // 22% of canvas height — covers shadow zone
+
+      // Bottom edge fade (where the sharp line is most visible)
+      const botGrad = ctx.createLinearGradient(0, ch - feather, 0, ch);
+      botGrad.addColorStop(0, "transparent");
+      botGrad.addColorStop(1, bg);
+      ctx.fillStyle = botGrad;
+      ctx.fillRect(0, ch - feather, cw, feather);
+
+      // Top edge fade (softer, 12%)
+      const topFeather = ch * 0.12;
+      const topGrad = ctx.createLinearGradient(0, topFeather, 0, 0);
+      topGrad.addColorStop(0, "transparent");
+      topGrad.addColorStop(1, bg);
+      ctx.fillStyle = topGrad;
+      ctx.fillRect(0, 0, cw, topFeather);
+
+      // Side edge fades (subtle, 8%)
+      const sideFeather = cw * 0.08;
+      const leftGrad = ctx.createLinearGradient(sideFeather, 0, 0, 0);
+      leftGrad.addColorStop(0, "transparent");
+      leftGrad.addColorStop(1, bg);
+      ctx.fillStyle = leftGrad;
+      ctx.fillRect(0, 0, sideFeather, ch);
+
+      const rightGrad = ctx.createLinearGradient(cw - sideFeather, 0, cw, 0);
+      rightGrad.addColorStop(0, "transparent");
+      rightGrad.addColorStop(1, bg);
+      ctx.fillStyle = rightGrad;
+      ctx.fillRect(cw - sideFeather, 0, sideFeather, ch);
     },
     []
   );
@@ -449,7 +483,8 @@ export default function Home() {
           },
         });
 
-        // Fade marquee in/out
+        // Emerge from behind: starts behind canvas (z-index -1), pops
+        // to foreground (z-index 3) with scale + blur depth effect
         ScrollTriggerModule.create({
           trigger: scrollContainer,
           start: "top top",
@@ -457,13 +492,34 @@ export default function Home() {
           scrub: true,
           onUpdate: (self) => {
             const p = self.progress;
+            const ENTER = 0.10;
+            const PEAK = 0.25; // fully emerged by 25%
+            const EXIT = 0.50;
+
             let marqueeOpacity = 0;
-            if (p > 0.10 && p < 0.50) {
-              const fadeIn = Math.min(1, (p - 0.10) / 0.05);
-              const fadeOut = Math.min(1, (0.50 - p) / 0.05);
+            let scale = 1.4;
+            let blur = 20;
+            let zIndex = -1; // behind canvas
+
+            if (p > ENTER && p < EXIT) {
+              const fadeIn = Math.min(1, (p - ENTER) / 0.06);
+              const fadeOut = Math.min(1, (EXIT - p) / 0.05);
               marqueeOpacity = Math.min(fadeIn, fadeOut) * 0.5;
+
+              // Emergence: 0 → 1 from ENTER → PEAK
+              const emergeProgress = Math.min(1, (p - ENTER) / (PEAK - ENTER));
+              scale = 1.4 - 0.4 * emergeProgress;   // 1.4 → 1.0
+              blur = 20 * (1 - emergeProgress);    // 20 → 0
+
+              // Pop to foreground once emergence starts (opacity > 0)
+              zIndex = 3;
             }
-            marqueeWrapRef.current.style.opacity = marqueeOpacity;
+
+            const el = marqueeWrapRef.current;
+            el.style.opacity = marqueeOpacity;
+            el.style.transform = `translateY(-50%) scale(${scale})`;
+            el.style.filter = `blur(${blur}px)`;
+            el.style.zIndex = zIndex;
           },
         });
       }
@@ -764,7 +820,7 @@ export default function Home() {
                 <div className="section-inner">
                   <span className="section-label">{section.label}</span>
                   <h2 className="section-heading">{section.heading}</h2>
-                  
+
                   <div className="contact-details">
                     <div className="contact-item">
                       <span className="contact-icon">
@@ -779,7 +835,7 @@ export default function Home() {
                         vasant kunj, new delhi, delhi - 110070
                       </p>
                     </div>
-                    
+
                     <div className="contact-methods">
                       <div className="contact-item">
                         <span className="contact-icon">
@@ -790,7 +846,7 @@ export default function Home() {
                         </span>
                         <a href="mailto:srleather100@gmail.com">srleather100@gmail.com</a>
                       </div>
-                      
+
                       <div className="contact-item">
                         <span className="contact-icon">
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
