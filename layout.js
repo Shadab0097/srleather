@@ -6,9 +6,6 @@ export const metadata = {
     "Discover the art of handcrafted leather. Premium full-grain leather bags, briefcases, wallets and accessories — meticulously crafted for those who demand excellence.",
   keywords:
     "leather bags, handcrafted, luxury, premium leather, briefcase, wallet, leather accessories, SR Leather",
-  icons: {
-    icon: "/sr-fa-icon.png",
-  },
   openGraph: {
     title: "SR Leather — Handcrafted Luxury Leather Bags",
     description:
