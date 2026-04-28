@@ -798,9 +798,9 @@ export default function Home() {
                           </svg>
                         </span>
                         <div>
-                          <a href="tel:+919313324425">9313324425</a>
+                          <a href="tel:+919312104380">9312104380</a>
                           <span className="contact-divider">/</span>
-                          <a href="tel:+919313104380">9313104380</a>
+                          <a href="tel:+919313324425">9313324425</a>
                         </div>
                       </div>
                     </div>
